@@ -1,58 +1,42 @@
-import pyttsx3
-import speech_recognition as sr
-import os
-import webbrowser
-import pywhatkit
+import streamlit as st
+import google.generativeai as genai
 
-speaker = pyttsx3.init()
-mic = sr.Recognizer()
+# ---------------------------------------------------
+# Title (App ka naam)
+# ---------------------------------------------------
+st.title("Simple AI Chat App")
+st.write("Ask anything and AI will reply.")
 
-speaker.say("Welcome to Jarvis. I am ready")
-speaker.runAndWait()
+# ---------------------------------------------------
+# API key input (user yaha apni API key dalega)
+# ---------------------------------------------------
+api_key = st.text_input("Enter your Gemini API Key:", type="password")
 
-while True:
-        with sr.Microphone() as source:  
-            print("Listening..")
-            voice = mic.listen(source)    
-            text = mic.recognize_google(voice).lower()
-            print("You said:", text)
+# Agar user ne API key di hai tab hi AI chalega
+if api_key:
 
-        if "open notepad" in text:
-            speaker.say("Opening Notepad")
-            speaker.runAndWait()
-            os.system("notepad")
+    # AI configure karna
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
-        elif "open calculator" in text:
-            speaker.say("Opening Calculator")
-            speaker.runAndWait()
-            os.system("calc")
+    st.subheader("Ask your question")
 
-        elif "open microsoft edge" in text:
-            speaker.say("Opening Microsoft Edge")
-            speaker.runAndWait()
-            webbrowser.open_new_tab("https://copilot.microsoft.com")
+    # User question input
+    user_msg = st.text_input("Type something...")
 
-        elif "play song" in text:
-            speaker.say("Playing song on YouTube")
-            speaker.runAndWait()
-            pywhatkit.playonyt("Adharam madhuram")
+    # Jab user message likhe tab AI reply karega
+    if user_msg:
 
-        elif "search google" in text:
-            speaker.say("Searching Google")
-            speaker.runAndWait()
-            pywhatkit.search("Python Programming")
-
-        elif "send message" in text:
-            speaker.say("Sending Whatsapp Message")
-            speaker.runAndWait()
-            pywhatkit.sendwhatmsg_instantly("+919162693606", "Hi this is Rohit Mittal")
-
-        elif "exit" in text or "quit" in text:
-            speaker.say("Goodbye Rohit, shutting down Jarvis")
-            speaker.runAndWait()
-            break
-
+        # Exit command
+        if user_msg.lower() == "exit":
+            st.warning("Goodbye!")
         else:
-            speaker.say("Sorry, I did not understand your command")
-            speaker.runAndWait()
-            break
+            # AI se jawaab lana
+            response = model.generate_content(user_msg)
+
+            # Bot ka reply show karna
+            st.write("###AI Reply:")
+            st.success(response.text)
+
+else:
+    st.info("Please enter API key to start the AI.")
